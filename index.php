@@ -4,6 +4,11 @@ class UrlShortener
 {
     private string $api = 'http://localhost/urls-api/';
 
+    public function __construct()
+    {
+        session_start();
+    }
+
     public function handleRequest()
     {
         if (isset($_GET['page'])) {
@@ -59,22 +64,28 @@ class UrlShortener
     public function navbar()
     {
 ?>
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark p-3">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">Navbar</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" href="#">URLS</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
+
+                <div class=" collapse navbar-collapse" id="navbarNavDropdown">
+                    <ul class="navbar-nav ms-auto ">
                         <li class="nav-item">
-                            <a class="nav-link active" aria-current="page" href="home">Home</a>
+                            <a class="nav-link mx-2 active" aria-current="page" href="/">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="add">Add</a>
+                            <a class="nav-link mx-2" href="add">Add</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="logout">Logout</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link mx-2 dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <?php echo $_SESSION['user_name'] ?>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <li><a class="dropdown-item" href="logout">Logout</a></li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
@@ -138,7 +149,6 @@ class UrlShortener
 
     private function homepage($api)
     {
-        session_start();
         if (isset($_SESSION['user_token'])) {
             $token = $_SESSION['user_token'];
             $url = $api . "/home/index.php?token=" . urlencode($token);
@@ -170,8 +180,8 @@ class UrlShortener
                             foreach ($decoded_data as $record) {
                             ?>
                                 <td><?php echo $record['id'] ?></td>
-                                <td><?php echo $record['orurl'] ?></td>
-                                <td><?php echo $record['shurl'] ?></td>
+                                <td><a href="<?php echo $record['orurl'] ?>"><?php echo $record['orurl'] ?></a></td>
+                                <td><?php echo 'urls.baguswinaksono.my.id/' . $record['shurl'] ?></td>
                                 <td><a class="btn btn-dark" href='edit&id=<?php echo $record['id'] ?>'>Edit</a></td>
                                 <td>
                                     <form action='delete' method='post'>
@@ -204,22 +214,25 @@ class UrlShortener
         {
             $this->bootstrapHead("Register");
             ?>
-            <div class="container">
-                <h2 class="pt-4">Register</h2>
-                <form action="userRegisterHandle" method="post">
-                    <label for="username">Username:</label>
-                    <br>
-                    <input class="form-control" type="text" id="username" name="username" required>
-                    <br>
-                    <label for="email">Email:</label>
-                    <br>
-                    <input class="form-control" type="email" id="email" name="email" required>
-                    <br>
-                    <label for="password">Password:</label>
-                    <br>
-                    <input class="form-control" type="password" id="password" name="password" required>
-                    <br>
-                    <input type="submit" class="btn btn-dark" value="Register">
+
+            <div class="container d-flex justify-content-center align-items-center vh-100">
+                <form action="userRegisterHandle" method="post" class="mx-auto" style="width: 500px;">
+                    <div class="mb-3">
+                        <label for="fullname" class="form-label">
+                            Username </label>
+                        <input type="text" name="username" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            Email Address </label>
+                        <input type="email" name="mail" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            Password </label>
+                        <input type="password" name="password" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-dark">Submit</button>
                 </form>
             </div>
         <?php
@@ -257,14 +270,21 @@ class UrlShortener
         {
             $this->bootstrapHead("Login");
         ?>
-            <div class="container">
-                <h2 class="pt-4">Login</h2>
-                <form id="loginForm" action="userLoginHandle" method="post">
-                    <label for="email">Email:</label><br>
-                    <input class="form-control" type="email" id="email" name="email" required><br>
-                    <label for="password">Password:</label><br>
-                    <input class="form-control" type="password" id="password" name="password" required><br>
-                    <input type="submit" class="btn btn-dark" value="Login">
+
+            <div class="container d-flex justify-content-center align-items-center vh-100">
+                <form action="userLoginHandle" method="post" class="mx-auto" style="width: 500px;">
+
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            Email Address </label>
+                        <input type="email" name="email" class="form-control" id="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            Password </label>
+                        <input type="password" name="password" class="form-control" id="password">
+                    </div>
+                    <button type="submit" class="btn btn-dark">Submit</button>
                 </form>
             </div>
         <?php
@@ -289,8 +309,8 @@ class UrlShortener
                 curl_close($ch);
                 $responseData = json_decode($response, true);
                 if ($responseData !== null) {
-                    session_start();
                     $_SESSION['user_token'] = $responseData['user_token'];
+                    $_SESSION['user_name'] = $responseData['user_name'];
                     $this->retrunHome();
                 } else {
                     $this->retrunHome();
@@ -300,7 +320,6 @@ class UrlShortener
 
         private function userLogoutHandle()
         {
-            session_start();
             session_destroy();
             $this->retrunHome();
         }
@@ -310,14 +329,20 @@ class UrlShortener
             $this->bootstrapHead("Add URL");
             $this->navbar();
         ?>
-            <div class="container">
-                <h2 class="pt-4">Add URL</h2>
-                <form action="addUrlsHandle" method="post">
-                    <label for="email">Original URL:</label><br>
-                    <input class="form-control" type="text" id="original_url" name="original_url" required><br>
-                    <label for="password">Short URL:</label><br>
-                    <input class="form-control" type="text" id="short_url" name="short_url" required><br>
-                    <input class="btn btn-dark" type="submit" value="Add">
+            <div class="container d-flex justify-content-center align-items-center" style="height: 80vh">
+                <form action="addUrlsHandle" method="post" class="mx-auto" style="width: 500px;">
+
+                    <div class="mb-3">
+                        <label for="original_url" class="form-label">
+                            Original Url </label>
+                        <input type="text" name="original_url" class="form-control" id="original_url">
+                    </div>
+                    <div class="mb-3">
+                        <label for="short_url" class="form-label">
+                            Short Url </label>
+                        <input type="text" name="short_url" class="form-control" id="short_url">
+                    </div>
+                    <button type="submit" class="btn btn-dark">Submit</button>
                 </form>
             </div>
             <?php
@@ -326,7 +351,6 @@ class UrlShortener
         private function addUrlsHandle($api)
         {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                session_start();
                 $token = $_SESSION['user_token'];
                 $original_url = $_POST['original_url'];
                 $short_url = $_POST['short_url'];
@@ -354,7 +378,6 @@ class UrlShortener
         private function editUrlsPage($api)
         {
             if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                session_start();
                 $id = $_GET['id'];
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $api . "detail/?id=$id");
@@ -368,16 +391,20 @@ class UrlShortener
                     $this->bootstrapHead("Edit URL");
                     $this->navbar();
             ?>
-
-                    <div class="container">
-                        <h2 class="pt-4">Edit Page</h2>
-                        <form action="update" method="post">
-                            <label for="orurl">Original URL:</label>
-                            <input type="hidden" id="id" name="id" value="<?php echo $id; ?>" required><br>
-                            <input class="form-control" type="text" id="orurl" name="orurl" value="<?php echo $original_url; ?>" required><br>
-                            <label for="shurl">Short URL:</label><br>
-                            <input class="form-control" type="text" id="shurl" name="shurl" value="<?php echo $short_url; ?>" required><br>
-                            <input class="btn btn-dark" type="submit" value="Update">
+                    <div class="container d-flex justify-content-center align-items-center" style="height: 80vh">
+                        <form action="update" method="post" class="mx-auto" style="width: 500px;">
+                            <input type="hidden" id="id" name="id" value="<?php echo $id; ?>" required>
+                            <div class="mb-3">
+                                <label for="orurl" class="form-label">
+                                    Original Url </label>
+                                <input type="text" name="orurl" class="form-control" id="orurl" value="<?php echo $original_url; ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label for="shurl" class="form-label">
+                                    Short Url </label>
+                                <input type="text" name="shurl" class="form-control" id="shurl" value="<?php echo $short_url; ?>">
+                            </div>
+                            <button type="submit" class="btn btn-dark">Submit</button>
                         </form>
                     </div>
     <?php
@@ -391,7 +418,6 @@ class UrlShortener
         private function updateUrlsHandle($api)
         {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                session_start();
                 $token = $_SESSION['user_token'];
                 $id = $_POST['id'];
                 $original_url = $_POST['orurl'];
@@ -421,7 +447,6 @@ class UrlShortener
         private function deleteUrlsHandle($api)
         {
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                session_start();
                 $token = $_SESSION['user_token'];
                 $id = $_POST['id'];
                 $postData = array(
