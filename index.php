@@ -1,53 +1,16 @@
 <?php
-
 declare(strict_types=1);
-session_start();
-
-require_once 'db.php';
-$routes = [
-    'GET' => [],
-    'POST' => [],
-    'PUT' => [],
-    'DELETE' => [],
-];
-
-function get(string $path, callable $handler): void
+require_once 'conn.php';
+require_once 'kita.php';
+function main(): void
 {
-    global $routes;
-    $routes['GET'][$path] = $handler;
-}
-
-function post(string $path, callable $handler): void
-{
-    global $routes;
-    $routes['POST'][$path] = $handler;
-}
-
-function dispatch(string $url, string $method): void
-{
-    global $routes;
-
-    if (!isset($routes[$method])) {
-        http_response_code(405);
-        echo "Method $method Not Allowed";
-        return;
-    }
-
-    foreach ($routes[$method] as $path => $handler) {
-        if (preg_match("#^$path$#", $url, $matches)) {
-            array_shift($matches);
-            call_user_func_array($handler, $matches);
-            return;
-        }
-    }
-
-    http_response_code(404);
-    handleNotFound();
-}
-
-function handleNotFound(): void
-{
-    echo "404 Not Found";
+    connectUrls();
+    session_start();
+    
+    get('/', 'home');
+    post('/shorten', 'shortenUrl');
+    get('/([a-zA-Z0-9]+)', 'redirectUrl');
+    post('/v', 'middleware');
 }
 
 function generateCsrfToken(): string
@@ -61,19 +24,6 @@ function generateCsrfToken(): string
 function validateCsrfToken(string $token): bool
 {
     return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
-}
-
-function listen(): void
-{
-    $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    $method = $_SERVER['REQUEST_METHOD'];
-
-    get('/', 'home');
-    post('/shorten', 'shortenUrl');
-    get('/([a-zA-Z0-9]+)', 'redirectUrl');
-    post('/v', 'middleware');
-
-    dispatch($url, $method);
 }
 
 function home(): void
@@ -176,25 +126,24 @@ function checkIfShortExists(string $shortKey): bool
 
 function middleware()
 {
-    $hashed_password = '$2y$10$A5XBobk5O4dzipZSEIDEkeZggwzM/YaaqAuDP9mLAWjqQ6DM0kVIu';
+    $hashed_password = '';
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_SESSION['original_password'])) {
         if (password_verify($_POST['password'], $hashed_password)) {
             $_SESSION['original_password'] = $_POST['password'];
             header('Location: /');
             exit;
         } else {
-            echo 'Invalid password. Please try again.';
+            http_response_code(401);
+            echo '<p>Invalid password. Please try again.</p>';
         }
     }
 
     if (!isset($_SESSION['original_password']) || !password_verify($_SESSION['original_password'], $hashed_password)) {
         echo '<form action="/v" method="post">
-            <input type="password" name="password" id="password" placeholder="Password">
+            <input type="password" name="password" placeholder="Password">
             <button type="submit">Unlock</button>
           </form>';
         exit;
     }
 }
-
-
-listen();
